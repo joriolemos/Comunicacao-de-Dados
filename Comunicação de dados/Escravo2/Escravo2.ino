@@ -1,21 +1,23 @@
 //  *********************************************
 //                    ESCRAVO 2
 //  *********************************************
+#include <SoftwareSerial.h>
+SoftwareSerial Mestre(4, 5); // RX, TX
 
 // Pino Entrada - Selecao Escravo
 int PinFault = 10;
-int LED = 9;
+int LED = 13;
 
 // Variaveis Globais
 char Flag = '0';
 String readString;
 
 struct HDLCFrame {
-  char flag[9];         
-  char address[9];      
-  char control[17];     
-  char information[10];  
-  char fcs[33];        
+  char flag[8];         
+  char address[8];      
+  char control[16];     
+  char information[10]; 
+  char fcs[32];        
 };
 
  HDLCFrame frame;
@@ -25,17 +27,17 @@ void CreateFrame (int Fault) {
   //**********************************//
   //*********** Monta Flag ***********//  
   for (int i = 0; i < 8; i++) {
-    frame.flag[i] = '0';    // Preenchendo com '0'
+    frame.flag[i] = '0';      // Preenchendo com '0'  
   }  
   //**********************************//
   //*********** Monta Endereço  *****//
   for (int i = 0; i < 8; i++) {
-    frame.address[i] = '0';   // Preenchendo com '0' 
+    frame.address[i] = '0';     // Preenchendo com '0'     
   } 
   //**********************************//
   //*********** Monta Controle  *****//  
   for (int i = 0; i < 16; i++) {
-    frame.control[i] = '0';    // Preenchendo com '0'   
+    frame.control[i] = '0';     // Preenchendo com '0'    
   }  
   //**********************************//
   //********** Monta Informação *****//  
@@ -51,18 +53,18 @@ void CreateFrame (int Fault) {
     }
   
   if(Fault == 0){
-    frame.fcs[31] = '0';	 
+    frame.fcs[7] = '0';	 
   }else{
-    frame.fcs[31] = '1';    
+    frame.fcs[7] = '1';    
   }    
-  frame.fcs[32] = '\0';  // Adicionando o caractere nulo no final
+  frame.fcs[31] = '\0';  // Adicionando o caractere nulo no final
 
   //*********** Imprime Frame - Envia para Info. Mestre ***********//
-  Serial.print(frame.flag);
-  Serial.print(frame.address);
-  Serial.print(frame.control);
-  Serial.print(frame.information);
-  Serial.print(frame.fcs);
+  Mestre.print(frame.flag);
+  //Mestre.print(frame.address);
+  //Mestre.print(frame.control);
+  //Mestre.print(frame.information);
+  //Mestre.print(frame.fcs);
 }
 
 int GenerateFault()
@@ -77,30 +79,49 @@ int GenerateFault()
 void setup() {  
   //SerialPort.begin(9600); 
   Serial.begin(9600);
+  Mestre.begin(9600);
   pinMode(PinFault, INPUT);
   pinMode(LED,OUTPUT);
 }
 
 void loop() { 
 
+  //Serial.println("loop");
   //Recebe Informações Mestre
-  while (Serial.available()){
-    readString = Serial.readString();
-    //Serial.print(readString);      
+  Serial.println("Aguarda Envio  Mestre!");  
+  while (Mestre.available()){
+    readString = Mestre.readString();
   }
-  if (readString[17] == '1') {
-    int GenerateFault1 = GenerateFault();
-    CreateFrame(GenerateFault1);
+  //Recebe Flag
+  if(readString[3] == '1'){
+    
     Serial.println();
-    delay(10);
+    Serial.print("Frame Recebido do Mestre: ");
+    Serial.print(readString);
+    delay(3000);     
+    //Recebe Flag - Direcionada para Escravo
+    if (readString[10] == '1') {
+      int GenerateFault1 = GenerateFault();
 
-    if (readString[42] == '0') {
+      Serial.println();
+      Serial.println("Frame Enviado para o Mestre: ");
+
+      digitalWrite(LED, HIGH);
+      CreateFrame(GenerateFault1);
+      delay(3000);
+      //Recebe Informacao - Liga - Desliga Led
+
+      if (readString[33] == '0') {
+        digitalWrite(LED, LOW);
+      }else{
+        digitalWrite(LED, HIGH);   
+      }
+    } else
+    {
+      //Escravo N Selecionado.
       digitalWrite(LED, LOW);
-    }else{
-      digitalWrite(LED, HIGH);   
     }
-  }else
-  {
-    digitalWrite(LED, LOW);
-  } 
+  }
+  readString = " ";
+
 }
