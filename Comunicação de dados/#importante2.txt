@@ -1,0 +1,23 @@
+Padrão Frame ultilizado:
+#################
+flag[8]           8 - bits
+address[8]        8 - bits
+control[16]      16 - bits
+information[10]  10 - bits
+fcs[32]          32 - bits
+#################
+
+Mestre ->
+
+ - Ao clicar em enviar, e setado na posição 7 o bit de flag e enviado o Frame;
+
+ - O Frame, é enviado para os 2 escravos. Porém, a ação determinada (ligar led) só será executada pelo
+   escravo endereçado de acordo com a chave de seleção, da seguinte forma (Escravo01 - Posição 8 = 1
+                                                                                       Posição 9 = 0
+                                                                           Escravo02 - Posiçõa 8 = 0
+                                                                                       Posiçõa 9 = 1);
+
+- No campo de informação, posição 41 do frame, será setado o bit de indicação para acender o LED. Para simulação, após acender o LED será enviado outro frame com o bit setado em 0, nessa mesma posição, para desligar o LED.
+
+- No campo FCS, posição 62 será simulado uma falha retornada do escravo. Assim, o mestre terá a indicação que o escravo não executou o comando solicitado.
+

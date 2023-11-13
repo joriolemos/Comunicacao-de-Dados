@@ -1,0 +1,13 @@
+2 Botões conetados no Mestre:
+
+	- Botão para Envio
+	- Botão Seleção Escravo 1 ou 2
+
+1 Botão para Escravos
+	- Simula Não recebimento Informação.
+
+
+Arduino Mestre:
+
+2 Portas Seriais Extras - 1 Para comunicação com Escravo01 e outra para Escravo02
+Porta Dedicada apenas para o Monitor Serial (Monstrar informações).
